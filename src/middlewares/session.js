@@ -32,6 +32,7 @@ export default function session(options) {
 			if (decrypted) {
 				try {
 					req.session = JSON.parse(decrypted)
+					console.log(req.session)
 				} catch {}
 			}
 		}
