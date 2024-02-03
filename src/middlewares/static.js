@@ -18,7 +18,9 @@ const extToType = {
 
 export default function serveStatic(staticDir) {
 	return async (req, res, next) => {
-		const filePath = path.join(staticDir, req.path)
+		const userPath = path.normalize(req.path)
+		const filePath = path.join(staticDir, userPath)
+		console.log(userPath);
 		try {
 			const stat = await fs.promises.stat(filePath)
 			if (stat.isFile()) {
