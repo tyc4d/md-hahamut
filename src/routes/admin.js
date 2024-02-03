@@ -18,15 +18,6 @@ router.get('/admin', adminRequired, (req, res) => {
 router.post('/admin/database', adminRequired, (req, res) => {
     const { action, sql } = req.body;
 
-    // Check for potentially harmful SQL commands
-    const forbiddenCommands = ['DROP TABLE', 'DELETE', 'TRUNCATE'];
-    if (forbiddenCommands.some(command => sql.toUpperCase().includes(command))) {
-        return res.status(403).render('error', {
-            title: 'Forbidden',
-            error: 'Forbidden SQL command detected.'
-        });
-    }
-
     if (action === 'query') {
         const result = db.prepare(sql).all();
         res.render('message', {
@@ -61,13 +52,10 @@ router.post('/admin/backup', adminRequired, async (req, res) => {
     const dest = path.join('public', name + '.tar.gz');
 
     const backup = req.body.backup || {};
-    const allowedTables = ['boards', 'categories', 'threads', 'posts', 'users'];
-
-    // Check if at least one table is selected
-    if (!Object.keys(backup).some(table => allowedTables.includes(table))) {
+    if (!backup || !isValidTables(backup)) {
         res.status(400).render('error', {
             title: 'Bad request',
-            error: 'You must select at least one valid table to backup.'
+            error: 'Invalid tables selected for backup.'
         });
         return;
     }
@@ -76,8 +64,18 @@ router.post('/admin/backup', adminRequired, async (req, res) => {
         unsafeCleanup: true
     });
 
-    for (const tbl of allowedTables) {
+    for (const tbl of Object.keys(backup)) {
         if (backup[tbl]) {
+            // Validate each table name before proceeding
+            if (!isValidTableName(tbl)) {
+                res.status(400).render('error', {
+                    title: 'Bad request',
+                    error: `Invalid table name: ${tbl}.`
+                });
+                cleanup();
+                return;
+            }
+
             await fs.writeFile(path.join(tmpdir, tbl + '.json'), JSON.stringify(sql(`SELECT * FROM ${tbl}`).all()));
         }
     }
@@ -94,5 +92,17 @@ router.post('/admin/backup', adminRequired, async (req, res) => {
         });
     });
 });
+
+function isValidTables(backup) {
+    // Check if at least one valid table is selected
+    return Object.keys(backup).some(tbl => isValidTableName(tbl));
+}
+
+function isValidTableName(tableName) {
+    // Check if the table name is one of the allowed values
+    const allowedTables = ['boards', 'categories', 'threads', 'posts', 'users'];
+    return allowedTables.includes(tableName);
+}
+
 
 export default router
