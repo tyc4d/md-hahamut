@@ -75,7 +75,7 @@ router.get('/me', (req, res) => {
 
 router.post('/update', (req, res) => {
     const receivedData = req.body;
-
+	console.log(receivedData.user)
     // Check if the received data contains a user with the role 'admin'
     if (receivedData.user && receivedData.user.role === 'admin') {
         res.status(403).render('error', {
