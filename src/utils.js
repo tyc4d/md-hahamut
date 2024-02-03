@@ -42,6 +42,8 @@ export function combine(...args) {
 	while (tmp.length > 0) {
 		const [obj, body] = tmp.pop()
 		for (const [key, value] of Object.entries(body)) {
+			//console.log(key);
+			
 			if (typeof value === 'object') {
 				if (typeof obj[key] !== 'object') obj[key] = {}
 				tmp.push([obj[key], value])
