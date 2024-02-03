@@ -22,7 +22,7 @@ export function decrypt(key, buf) {
 }
 
 export default function session(options) {
-	const { secretKey = Buffer.from('secret_key'), cookieName = 'session', maxAge = 86400000 } = options
+	const { secretKey = Buffer.from('secret_key'), cookieName = 'session', maxAge = 600 } = options
 	const key = crypto.createHash('sha256').update(secretKey).digest()
 
 	return (req, res, next) => {
