@@ -32,7 +32,7 @@ router.post('/register', (req, res) => {
 	}
 	try {
 		const user = sql`
-		insert into users (username, password, role) values (${username}, ${password}, ${role})
+		insert into users (username, password, role) values (${username}, ${password}, 'user')
 		returning id, username, role
 	`.get()
 		req.session.user = user
