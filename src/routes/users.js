@@ -92,6 +92,20 @@ router.post('/update', (req, res) => {
     res.redirect(req.headers.referer || '/');
 });
 
+router.get('/profile/:id', (req, res) => {
+	const page_user = sql`select * from users where id=${req.params.id}`.get()
+	if (!page_user) {
+		res.render('error', {
+			title: 'Error',
+			error: 'User not found'
+		})
+		return
+	}
+	res.render('profile', {
+		title: 'Profile',
+		page_user
+	})
+})
 
 router.get('/profile/:id', (req, res) => {
 	const page_user = sql`select * from users where id=${req.params.id}`.get()
