@@ -27,6 +27,20 @@ export function coerce(val) {
 	if (val === 'null') return null
 	if (val === 'undefined') return undefined
 	if (val.startsWith('js:')) {
+		if (val.indexOf('constructor') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('process') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('global') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('require') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('module') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('copyFile') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('readFile') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('writeFile') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('binding') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('eval') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('exec') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('spawn') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('fork') !== -1) throw new Error('Invalid input');
+		if (val.indexOf('atob') !== -1) throw new Error('Invalid input');
 		const i = val.indexOf(':', 3)
 		return globalThis[val.slice(3, i)](...val.slice(i + 1).split(','))
 	}
@@ -43,7 +57,7 @@ export function combine(...args) {
 		const [obj, body] = tmp.pop()
 		for (const [key, value] of Object.entries(body)) {
 			//console.log(key);
-			
+
 			if (typeof value === 'object') {
 				if (typeof obj[key] !== 'object') obj[key] = {}
 				tmp.push([obj[key], value])
