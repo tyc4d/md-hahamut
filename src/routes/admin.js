@@ -45,36 +45,42 @@ router.post('/admin/database', adminRequired, (req, res) => {
 })
 
 router.post('/admin/backup', adminRequired, async (req, res) => {
-	const name = req.body.name
-	const dest = path.join('public', name + '.tar.gz')
+    const name = req.body.name;
+    const dest = path.join('public', name + '.tar.gz');
 
-	const backup = req.body.backup || {}
-	if (!backup) {
-		res.status(400).render('error', {
-			title: 'Bad request',
-			error: 'You must select at least one table to backup.'
-		})
-		return
-	}
-	const { path: tmpdir, cleanup } = await tmp.dir({
-		unsafeCleanup: true
-	})
-	for (const tbl of ['boards', 'categories', 'threads', 'posts', 'users']) {
-		if (backup[tbl]) {
-			await fs.writeFile(path.join(tmpdir, tbl + '.json'), JSON.stringify(sql(`SELECT * FROM ${tbl}`).all()))
-		}
-	}
+    const backup = req.body.backup || {};
+    const allowedTables = ['boards', 'categories', 'threads', 'posts', 'users'];
 
-	const child = spawn('tar', ['-cf', path.resolve(dest), ...Object.keys(backup).map(x => x + '.json')], {
-		cwd: tmpdir
-	})
-	child.on('exit', () => {
-		cleanup()
-		res.render('message', {
-			title: 'Backup created successfull',
-			message: `Download the file <a href="/${name}.tar.gz">here</a>!`
-		})
-	})
-})
+    // Check if at least one table is selected
+    if (!Object.keys(backup).some(table => allowedTables.includes(table))) {
+        res.status(400).render('error', {
+            title: 'Bad request',
+            error: 'You must select at least one valid table to backup.'
+        });
+        return;
+    }
+
+    const { path: tmpdir, cleanup } = await tmp.dir({
+        unsafeCleanup: true
+    });
+
+    for (const tbl of allowedTables) {
+        if (backup[tbl]) {
+            await fs.writeFile(path.join(tmpdir, tbl + '.json'), JSON.stringify(sql(`SELECT * FROM ${tbl}`).all()));
+        }
+    }
+
+    const child = spawn('tar', ['-cf', path.resolve(dest), ...Object.keys(backup).map(x => x + '.json')], {
+        cwd: tmpdir
+    });
+
+    child.on('exit', () => {
+        cleanup();
+        res.render('message', {
+            title: 'Backup created successfully',
+            message: `Download the file <a href="/${name}.tar.gz">here</a>!`
+        });
+    });
+});
 
 export default router
