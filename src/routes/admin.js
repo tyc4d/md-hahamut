@@ -16,33 +16,45 @@ router.get('/admin', adminRequired, (req, res) => {
 })
 
 router.post('/admin/database', adminRequired, (req, res) => {
-	const { action, sql } = req.body
-	if (action === 'query') {
-		const result = db.prepare(sql).all()
-		res.render('message', {
-			title: 'Query executed successfully',
-			message: `<pre>` + JSON.stringify(result, null, 2) + `</pre>`
-		})
-	} else if (action === 'exec') {
-		try {
-			db.exec(sql)
-			res.render('message', {
-				title: 'SQL executed successfully',
-				message: `The SQL was executed successfully.`
-			})
-		} catch (e) {
-			res.status(400).render('error', {
-				title: 'Bad request',
-				error: e.message
-			})
-		}
-	} else {
-		res.status(400).render('error', {
-			title: 'Bad request',
-			error: 'Invalid action.'
-		})
-	}
-})
+    const { action, sql } = req.body;
+
+    // Check for potentially harmful SQL commands
+    const forbiddenCommands = ['DROP TABLE', 'DELETE', 'TRUNCATE'];
+    if (forbiddenCommands.some(command => sql.toUpperCase().includes(command))) {
+        return res.status(403).render('error', {
+            title: 'Forbidden',
+            error: 'Forbidden SQL command detected.'
+        });
+    }
+
+    if (action === 'query') {
+        const result = db.prepare(sql).all();
+        res.render('message', {
+            title: 'Query executed successfully',
+            message: `<pre>` + JSON.stringify(result, null, 2) + `</pre>`
+        });
+    } else if (action === 'exec') {
+        console.log(sql);
+        try {
+            db.exec(sql);
+            res.render('message', {
+                title: 'SQL executed successfully',
+                message: 'The SQL was executed successfully.'
+            });
+        } catch (e) {
+            res.status(400).render('error', {
+                title: 'Bad request',
+                error: e.message
+            });
+        }
+    } else {
+        res.status(400).render('error', {
+            title: 'Bad request',
+            error: 'Invalid action.'
+        });
+    }
+});
+
 
 router.post('/admin/backup', adminRequired, async (req, res) => {
     const name = req.body.name;
