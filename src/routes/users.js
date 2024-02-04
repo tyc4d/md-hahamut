@@ -121,6 +121,13 @@ router.post('/profile/:id/description', loginRequired, (req, res) => {
 })
 
 router.post('/profile/:id/password', loginRequired, (req, res) => {
+	if (req.params.id != req.session.user.id) {
+		res.render('error', {
+			title: 'Error',
+			error: 'You can only change your own password'
+		})
+		return
+	}
 	const { new_password } = req.body
 	sql`
 		update users set password=${new_password} where id=${req.params.id}
