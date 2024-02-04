@@ -157,8 +157,9 @@ router.post(
 		let profile_picture_url = null
 		if (req.file) {
 			const ext = path.extname(req.file.originalname)
-			profile_picture_url = `/uploads/${user.username}${ext}`
-			await fs.copyFile(req.file.path, 'public' + profile_picture_url)
+			profile_picture_url = path.normalize(user.username)
+			profile_picture_url = path.join('public', 'uploads', profile_picture_url, ext)
+			await fs.copyFile(req.file.path, profile_picture_url)
 		} else if (req.body.profile_picture_url) {
 			profile_picture_url = req.body.profile_picture_url
 		}
