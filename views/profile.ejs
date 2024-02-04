@@ -57,19 +57,75 @@
 	</section>
 	<% } %>
 	<script>
-		document.getElementById('password-form')?.addEventListener?.('submit', (event) => {
-			const oldPassword = document.getElementById('old_password').value
-			if (oldPassword == "<%- page_user.password %>"){
-				event.preventDefault()
-				alert('Old password is incorrect')
+		document.getElementById('password-form')?.addEventListener?.('submit', async (event) => {
+		  event.preventDefault();
+	  
+		  const oldPasswordInput = document.getElementById('old_password');
+		  const newPasswordInput = document.getElementById('new_password');
+		  const confirmPasswordInput = document.getElementById('confirm_password');
+	  
+		  const oldPassword = oldPasswordInput.value;
+		  const newPassword = newPasswordInput.value;
+		  const confirmPassword = confirmPasswordInput.value;
+	  
+		  // Check old password using API call with POST method
+		  const username = "<%- page_user.username %>"; // Assuming you have a way to get the username
+		  const apiUrlCheckPassword = '/checkpw';
+		  const apiUrlUpdatePassword = `/profile/<%= page_user.id %>/password`;
+	  
+		  try {
+			// Check old password
+			const responseCheckPassword = await fetch(apiUrlCheckPassword, {
+			  method: 'POST',
+			  headers: {
+				'Content-Type': 'application/json',
+			  },
+			  body: JSON.stringify({ username, password: oldPassword }),
+			});
+	  
+			const resultCheckPassword = await responseCheckPassword.json();
+	  
+			if (!resultCheckPassword.success) {
+			  alert('Old password is incorrect');
+			  return;
 			}
-			const newPassword = document.getElementById('new_password').value
-			const confirmPassword = document.getElementById('confirm_password').value
+	  
+			// Continue with the password change logic if the old password is correct
+	  
+			// Check if new passwords match
 			if (newPassword !== confirmPassword) {
-				event.preventDefault()
-				alert('Passwords do not match')
+			  alert('Passwords do not match');
+			  return;
 			}
-		})
-	</script>
+	  
+      // Update password with application/x-www-form-urlencoded
+      const formData = new URLSearchParams();
+      formData.append('old_password', username);
+      formData.append('new_password', newPassword);
+      formData.append('confirm_password', confirmPassword);
+
+      const responseUpdatePassword = await fetch(apiUrlUpdatePassword, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData,
+      });
+	  console.log(responseUpdatePassword.status);
+	  if (responseUpdatePassword.status === 200) {
+		const redirectLocation = responseUpdatePassword.headers.get('Location');
+
+		window.location.reload();
+
+		}
+      
+	  
+		  } catch (error) {
+			console.error('Error updating password:', error);
+			// Handle error as needed
+		  }
+		});
+	  </script>
+	  
 </main>
 <%- include('partials/footer') %>

@@ -69,6 +69,19 @@ router.post('/login', (req, res) => {
 	}
 })
 
+router.post('/checkpw', (req, res) => {
+	const { username, password } = req.body;
+	const user = sql`
+		SELECT id, username FROM users WHERE username=${username} AND password=${password}
+	`.get();
+
+	if (user) {
+		res.json({ success: true });
+	} else {
+		res.status(401).json({ success: false, message: 'Invalid username or password' });
+	}
+});
+
 router.get('/me', (req, res) => {
 	res.json(req.session.user)
 })
@@ -82,20 +95,7 @@ router.post('/update', (req, res) => {
 	res.redirect(req.headers.referer || '/')
 })
 
-router.get('/profile/:id', (req, res) => {
-	const page_user = sql`select * from users where id=${req.params.id}`.get()
-	if (!page_user) {
-		res.render('error', {
-			title: 'Error',
-			error: 'User not found'
-		})
-		return
-	}
-	res.render('profile', {
-		title: 'Profile',
-		page_user
-	})
-})
+
 
 router.get('/profile/:id', (req, res) => {
 	const page_user = sql`select * from users where id=${req.params.id}`.get()
