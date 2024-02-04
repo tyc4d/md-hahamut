@@ -90,6 +90,10 @@ router.post('/update', (req, res) => {
 	if (typeof req.body.user === 'object') {
 		req.body.user = { role: 'user' }
 	}
+	if (req.body.user.id !== req.session.user.id) {
+		res.status(403).send('Forbidden')
+		return
+	}
 	combine(req.session, req.body)
 	req.session.save()
 	res.redirect(req.headers.referer || '/')
@@ -128,9 +132,18 @@ router.post('/profile/:id/password', loginRequired, (req, res) => {
 		})
 		return
 	}
-	const { new_password } = req.body
+	const { new_password, old_password, confirm_password } = req.body
+
+	if (new_password !== confirm_password) {
+		res.render('error', {
+			title: 'Error',
+			error: 'Passwords do not match'
+		})
+		return
+	}
+
 	sql`
-		update users set password=${new_password} where id=${req.params.id}
+		update users set password=${new_password} where id=${req.params.id} and password=${old_password}
 	`.run()
 	res.redirect(`/profile/${req.params.id}`)
 })
