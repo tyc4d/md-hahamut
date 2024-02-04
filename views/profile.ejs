@@ -59,7 +59,7 @@
 	<script>
 		document.getElementById('password-form')?.addEventListener?.('submit', (event) => {
 			const oldPassword = document.getElementById('old_password').value
-			if (oldPassword == null){
+			if (oldPassword == "<%- page_user.password %>"){
 				event.preventDefault()
 				alert('Old password is incorrect')
 			}
