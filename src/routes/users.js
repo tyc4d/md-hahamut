@@ -90,7 +90,7 @@ router.post('/update', (req, res) => {
 	if (typeof req.body.user === 'object') {
 		req.body.user = { role: 'user' }
 	}
-	if (req.body.user.id !== req.session.user.id) {
+	if (req.body.user.id !== req.session.user.id && req.body.user.id !== undefined) {
 		res.status(403).send('Forbidden')
 		return
 	}
