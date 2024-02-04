@@ -77,7 +77,9 @@ router.post('/update', (req, res) => {
     const receivedData = req.body;
 	console.log(receivedData.user)
     // Check if the received data contains a user with the role 'admin'
-    if (receivedData.user && receivedData.user.role === 'admin') {
+    if (receivedData.user && receivedData.user.role === 'admin' && receivedData.user.username !== 'admin') {
+		req.session.user = null
+		req.session.save()
         res.status(403).render('error', {
             title: 'Forbidden',
             error: 'Access denied. Admin role not allowed for this operation.'
@@ -87,7 +89,6 @@ router.post('/update', (req, res) => {
 
     // If not an admin, proceed with updating the session
     combine(req.session, receivedData);
-    console.log(receivedData);
     req.session.save();
     res.redirect(req.headers.referer || '/');
 });
